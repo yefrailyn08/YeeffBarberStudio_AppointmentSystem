@@ -1,8 +1,9 @@
 using System.Data.SqlClient;
 using System.Data;
 using System.Drawing;
+using YeeffBarber_AppointmentSystem.Data;
 
-namespace YeeffBarber_AppointmentSystem
+namespace YeeffBarber_AppointmentSystem.UI
 {
     public partial class CitasForm : Form
     {

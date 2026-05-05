@@ -1,7 +1,8 @@
 using System.Drawing;
 using System.Data.SqlClient;
+using YeeffBarber_AppointmentSystem.Data;
 
-namespace YeeffBarber_AppointmentSystem
+namespace YeeffBarber_AppointmentSystem.UI
 {
     public partial class Form1 : Form
     {
@@ -112,19 +113,12 @@ namespace YeeffBarber_AppointmentSystem
             }
         }
 
-        private void Form1_Load(object sender, EventArgs e)
+        private void lblTitulo_Click(object? sender, EventArgs e)
         {
-
         }
 
-        private void lblTitulo_Click(object sender, EventArgs e)
+        private void Form1_Load_1(object? sender, EventArgs e)
         {
-
-        }
-
-        private void Form1_Load_1(object sender, EventArgs e)
-        {
-
         }
     }
 }

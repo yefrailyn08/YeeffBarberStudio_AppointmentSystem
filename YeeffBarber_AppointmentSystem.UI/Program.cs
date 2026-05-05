@@ -1,4 +1,4 @@
-namespace YeeffBarber_AppointmentSystem
+namespace YeeffBarber_AppointmentSystem.UI
 {
     internal static class Program
     {

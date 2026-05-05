@@ -1,3 +1,5 @@
 <Solution>
-  <Project Path="YeeffBarber_AppointmentSystem.csproj" />
+  <Project Path="YeeffBarber_AppointmentSystem.Data/YeeffBarber_AppointmentSystem.Data.csproj" />
+  <Project Path="YeeffBarber_AppointmentSystem.Test/YeeffBarber_AppointmentSystem.Test.csproj" />
+  <Project Path="YeeffBarber_AppointmentSystem.UI/YeeffBarber_AppointmentSystem.UI.csproj" />
 </Solution>

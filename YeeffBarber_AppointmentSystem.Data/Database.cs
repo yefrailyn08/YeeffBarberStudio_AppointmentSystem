@@ -1,7 +1,6 @@
 using System.Data.SqlClient;
-using System.Windows.Forms;
 
-namespace YeeffBarber_AppointmentSystem
+namespace YeeffBarber_AppointmentSystem.Data
 {
     public class Database
     {
@@ -51,8 +50,7 @@ namespace YeeffBarber_AppointmentSystem
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error al guardar: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return false;
+                throw new Exception("Error al guardar: " + ex.Message);
             }
         }
     }
