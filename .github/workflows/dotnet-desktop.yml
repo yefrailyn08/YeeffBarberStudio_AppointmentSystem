@@ -42,4 +42,3 @@ jobs:
           path: "**/TestResults/*.trx"
           reporter: "dotnet-trx"
           fail-on-error: "false"
-        path: ${{ env.Wap_Project_Directory }}\AppPackages
