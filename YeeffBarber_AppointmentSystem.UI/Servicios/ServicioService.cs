@@ -1,56 +1,60 @@
+using Microsoft.EntityFrameworkCore;
+using System.Threading.Tasks;
+using YeeffBarber_AppointmentSystem.Data.Context;
+using YeeffBarber_AppointmentSystem.Data.Modelos;
+
 namespace YeeffBarber_AppointmentSystem.UI.Servicios
 {
-    public class ServicioService
+    public class ServicioService : IService<Servicio>
     {
-        private readonly Dictionary<string, bool> _serviciosSeleccionados;
+        private readonly AppDbContext _context;
 
-        public ServicioService()
+        public ServicioService(AppDbContext context)
         {
-            _serviciosSeleccionados = new Dictionary<string, bool>
-            {
-                { "Corte de pelo", false },
-                { "Cerquillo y barba", false },
-                { "Corte de niños", false }
-            };
+            _context = context;
         }
 
-        public void SeleccionarServicio(string servicio, bool seleccionado)
+        public async Task<bool> Guardar(Servicio servicio)
         {
-            if (_serviciosSeleccionados.ContainsKey(servicio))
+            if (servicio == null)
+                throw new ArgumentNullException("servicio");
+                
+            if (servicio.Id > 0)
+                return await Modificar(servicio);
+            else
+                return await Insertar(servicio);
+        }
+
+        private async Task<bool> Insertar(Servicio servicio)
+        {
+            _context.Servicios.Add(servicio);
+            return await _context.SaveChangesAsync() > 0;
+        }
+
+        private async Task<bool> Modificar(Servicio servicio)
+        {
+            _context.Servicios.Update(servicio);
+            return await _context.SaveChangesAsync() > 0;
+        }
+
+        public async Task<List<Servicio>> GetAll()
+        {
+            return await _context.Servicios
+                .Where(s => s.Activo)
+                .ToListAsync();
+        }
+
+        public async Task<List<Servicio>> GetServiciosDisponibles()
+        {
+            try
             {
-                _serviciosSeleccionados[servicio] = seleccionado;
+                return await _context.Servicios
+                    .Where(s => s.Activo)
+                    .ToListAsync();
             }
-        }
-
-        public string ObtenerServiciosSeleccionados()
-        {
-            var servicios = new List<string>();
-            foreach (var kvp in _serviciosSeleccionados)
+            catch (Exception ex)
             {
-                if (kvp.Value)
-                {
-                    servicios.Add(kvp.Key);
-                }
-            }
-            return string.Join(", ", servicios);
-        }
-
-        public bool HayServiciosSeleccionados()
-        {
-            return _serviciosSeleccionados.Values.Any(s => s);
-        }
-
-        public List<string> GetServiciosDisponibles()
-        {
-            return _serviciosSeleccionados.Keys.ToList();
-        }
-
-        public void LimpiarSeleccion()
-        {
-            var keys = _serviciosSeleccionados.Keys.ToList();
-            foreach (var key in keys)
-            {
-                _serviciosSeleccionados[key] = false;
+                throw new Exception($"Error al obtener servicios disponibles: {ex.Message}", ex);
             }
         }
     }

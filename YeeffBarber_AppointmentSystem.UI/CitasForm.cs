@@ -1,22 +1,43 @@
-using System.Data.SqlClient;
-using System.Data;
 using System.Drawing;
-using YeeffBarber_AppointmentSystem.Data;
+using System.Data;
+using Microsoft.EntityFrameworkCore;
+using YeeffBarber_AppointmentSystem.Data.Context;
+using YeeffBarber_AppointmentSystem.UI.Servicios;
+using YeeffBarber_AppointmentSystem.Data.Modelos;
 
 namespace YeeffBarber_AppointmentSystem.UI
 {
     public partial class CitasForm : Form
     {
-        private DataGridView dgvCitas;
-        private Button btnActualizar;
-        private Label lblTitulo;
-        private Button btnVolver;
-        private string connectionString = @"Server=localhost\SQLEXPRESS;Database=YeeffBarberDb;Integrated Security=True;TrustServerCertificate=True;";
+        private DataGridView? dgvCitas;
+        private Button? btnActualizar;
+        private Label? lblTitulo;
+        private Button? btnVolver;
+        private CitaService? _citaService;
 
         public CitasForm()
         {
             InitializeComponent();
+            InitializeServices();
             CargarCitas();
+        }
+
+        private void InitializeServices()
+        {
+            try
+            {
+                var options = new DbContextOptionsBuilder<AppDbContext>()
+                    .UseSqlServer(@"Server=localhost\SQLEXPRESS;Database=YeeffBarberDb;Integrated Security=True;TrustServerCertificate=True;")
+                    .Options;
+                var context = new AppDbContext(options);
+                context.Database.EnsureCreated();
+                _citaService = new CitaService(context);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error al inicializar servicios: {ex.Message}\n\nDetalles: {ex.InnerException?.Message}", 
+                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void InitializeComponent()
@@ -88,60 +109,46 @@ namespace YeeffBarber_AppointmentSystem.UI
             this.Controls.Add(btnVolver);
         }
 
-        private void CargarCitas()
+        private async void CargarCitas()
         {
             try
             {
-                using (SqlConnection conn = new SqlConnection(connectionString))
-                {
-                    conn.Open();
-                    
-                    System.Data.DataTable dt = new System.Data.DataTable();
-                    dt.Columns.Add("Cliente", typeof(string));
-                    dt.Columns.Add("Telefono", typeof(string));
-                    dt.Columns.Add("Servicios", typeof(string));
-                    dt.Columns.Add("Fecha", typeof(string));
-                    dt.Columns.Add("Hora", typeof(string));
-                    
-                    string query = "SELECT * FROM Citas";
-                    SqlDataAdapter adapter = new SqlDataAdapter(query, conn);
-                    System.Data.DataTable tempDt = new System.Data.DataTable();
-                    adapter.Fill(tempDt);
-                    
-                    foreach (System.Data.DataRow tempRow in tempDt.Rows)
-                    {
-                        try
-                        {
-                            DataRow row = dt.NewRow();
-                            row["Cliente"] = tempRow["NombreCliente"]?.ToString() ?? "";
-                            row["Telefono"] = tempRow["TelefonoCliente"]?.ToString() ?? "";
-                            row["Servicios"] = tempRow["ServicioID"]?.ToString() ?? "";
-                            string fechaHora = tempRow["FechaHora"]?.ToString() ?? "";
-                            if (fechaHora.Contains(" "))
-                            {
-                                string[] partes = fechaHora.Split(' ');
-                                row["Fecha"] = partes[0];
-                                row["Hora"] = partes.Length > 1 ? partes[1] : "";
-                            }
-                            else
-                            {
-                                row["Fecha"] = fechaHora;
-                                row["Hora"] = "";
-                            }
-                            dt.Rows.Add(row);
-                        }
-                        catch
-                        {
-                            // Saltar fila con error
-                        }
-                    }
+                if (_citaService == null)
+                    return;
 
-                    dgvCitas.DataSource = dt;
-                    
-                    if (dt.Rows.Count == 0)
+                var citas = await _citaService.GetAll();
+
+                var dt = new System.Data.DataTable();
+                dt.Columns.Add("Cliente", typeof(string));
+                dt.Columns.Add("Telefono", typeof(string));
+                dt.Columns.Add("Servicio", typeof(string));
+                dt.Columns.Add("Fecha", typeof(string));
+                dt.Columns.Add("Hora", typeof(string));
+
+                foreach (var cita in citas)
+                {
+                    try
                     {
-                        MessageBox.Show("No hay citas registradas todavía.", "Información", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        DataRow row = dt.NewRow();
+                        row["Cliente"] = cita.NombreCompleto;
+                        row["Telefono"] = cita.Telefono;
+                        row["Servicio"] = cita.Servicio?.Nombre ?? "N/A";
+                        row["Fecha"] = cita.FechaHora.ToString("dd/MM/yyyy");
+                        row["Hora"] = cita.FechaHora.ToString("HH:mm");
+                        dt.Rows.Add(row);
                     }
+                    catch
+                    {
+                        // Skip row with error
+                    }
+                }
+
+                if (dgvCitas != null)
+                    dgvCitas.DataSource = dt;
+
+                if (dt.Rows.Count == 0)
+                {
+                    MessageBox.Show("No hay citas registradas todavía.", "Información", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
             }
             catch (Exception ex)

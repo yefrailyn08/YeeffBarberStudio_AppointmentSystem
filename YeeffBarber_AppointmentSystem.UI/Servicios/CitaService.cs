@@ -1,7 +1,54 @@
+using Microsoft.EntityFrameworkCore;
+using System.Threading.Tasks;
+using YeeffBarber_AppointmentSystem.Data.Context;
+using YeeffBarber_AppointmentSystem.Data.Modelos;
+
 namespace YeeffBarber_AppointmentSystem.UI.Servicios
 {
-    public class CitaService
+    public class CitaService : IService<Cita>
     {
+        private readonly AppDbContext _context;
+
+        public CitaService(AppDbContext context)
+        {
+            _context = context;
+        }
+
+        public async Task<bool> Guardar(Cita cita)
+        {
+            if (cita.Id > 0)
+                return await Modificar(cita);
+            else
+                return await Insertar(cita);
+        }
+
+        private async Task<bool> Insertar(Cita cita)
+        {
+            _context.Citas.Add(cita);
+            return await _context.SaveChangesAsync() > 0;
+        }
+
+        private async Task<bool> Modificar(Cita cita)
+        {
+            _context.Citas.Update(cita);
+            return await _context.SaveChangesAsync() > 0;
+        }
+
+        public async Task<List<Cita>> GetAll()
+        {
+            try
+            {
+                return await _context.Citas
+                    .Include(c => c.Servicio)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error en GetAll: {ex.Message}", ex);
+            }
+        }
+
+        // Validation methods used in UI
         public bool ValidarNombre(string nombre)
         {
             return !string.IsNullOrWhiteSpace(nombre) && nombre.Length >= 3;
@@ -9,56 +56,12 @@ namespace YeeffBarber_AppointmentSystem.UI.Servicios
 
         public bool ValidarTelefono(string telefono)
         {
-            if (string.IsNullOrWhiteSpace(telefono))
-                return false;
-
-            var soloNumeros = telefono.Replace("-", "").Replace(" ", "").Replace("(", "").Replace(")", "");
-            return soloNumeros.Length >= 10 && soloNumeros.All(char.IsDigit);
+            return !string.IsNullOrWhiteSpace(telefono) && telefono.Length >= 10;
         }
 
-        public bool ValidarFecha(DateTime fecha)
+        public string FormatearConfirmacion(string nombre, string servicio, DateTime fechaHora)
         {
-            return fecha >= DateTime.Today;
-        }
-
-        public bool ValidarHora(string hora)
-        {
-            return !string.IsNullOrWhiteSpace(hora);
-        }
-
-        public string ValidarCitaCompleta(string nombre, string telefono, string servicios, DateTime fecha, string hora)
-        {
-            if (!ValidarNombre(nombre))
-                return "El nombre debe tener al menos 3 caracteres";
-
-            if (!ValidarTelefono(telefono))
-                return "El teléfono debe tener al menos 10 dígitos";
-
-            if (string.IsNullOrWhiteSpace(servicios))
-                return "Debe seleccionar al menos un servicio";
-
-            if (!ValidarFecha(fecha))
-                return "La fecha debe ser hoy o una fecha futura";
-
-            if (!ValidarHora(hora))
-                return "Debe seleccionar una hora";
-
-            return string.Empty;
-        }
-
-        public string FormatearConfirmacion(string nombre, string telefono, string servicios, DateTime fecha, string hora)
-        {
-            return $"¡Cita confirmada!\n\n" +
-                   $"Cliente: {nombre}\n" +
-                   $"Teléfono: {telefono}\n" +
-                   $"Servicios: {servicios}\n" +
-                   $"Fecha: {fecha:dd/MM/yyyy}\n" +
-                   $"Hora: {hora}";
-        }
-
-        public string LimpiarTextoPlaceholder(string texto, string placeholder)
-        {
-            return texto == placeholder ? "" : texto;
+            return $"Cita confirmada para {nombre} - Servicio: {servicio} - Fecha: {fechaHora:dd/MM/yyyy HH:mm}";
         }
     }
 }

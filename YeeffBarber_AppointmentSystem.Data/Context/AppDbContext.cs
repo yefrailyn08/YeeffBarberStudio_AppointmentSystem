@@ -1,154 +1,62 @@
+using Microsoft.EntityFrameworkCore;
 using YeeffBarber_AppointmentSystem.Data.Modelos;
-using System.Data.SqlClient;
 
 namespace YeeffBarber_AppointmentSystem.Data.Context
 {
-    public class AppDbContext
+    public class AppDbContext : DbContext
     {
-        public string ConnectionString { get; }
-
-        public AppDbContext(string? connectionString = null)
+        public AppDbContext(DbContextOptions<AppDbContext> options)
+            : base(options)
         {
-            ConnectionString = connectionString ?? @"Server=localhost\SQLEXPRESS;Database=YeeffBarberDb;Integrated Security=True;TrustServerCertificate=True;";
         }
 
-        public List<Cita> ObtenerTodasLasCitas()
-        {
-            var citas = new List<Cita>();
-            try
-            {
-                using (SqlConnection conn = new SqlConnection(ConnectionString))
-                {
-                    conn.Open();
-                    string query = "SELECT Id, NombreCompleto, Telefono, Servicios, FechaHora, FechaRegistro FROM Citas";
-                    using (SqlCommand cmd = new SqlCommand(query, conn))
-                    using (SqlDataReader reader = cmd.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            citas.Add(new Cita
-                            {
-                                Id = Convert.ToInt32(reader["Id"]),
-                                NombreCompleto = reader["NombreCompleto"]?.ToString() ?? "",
-                                Telefono = reader["Telefono"]?.ToString() ?? "",
-                                Servicios = reader["Servicios"]?.ToString() ?? "",
-                                FechaHora = Convert.ToDateTime(reader["FechaHora"]),
-                                FechaRegistro = reader["FechaRegistro"] != DBNull.Value
-                                    ? Convert.ToDateTime(reader["FechaRegistro"])
-                                    : DateTime.Now
-                            });
-                        }
-                    }
-                }
-            }
-            catch
-            {
-                // Retornar lista vacía si hay error de conexión
-            }
-            return citas;
-        }
+        public virtual DbSet<Cita> Citas { get; set; } = null!;
+        public virtual DbSet<Servicio> Servicios { get; set; } = null!;
 
-        public bool GuardarCita(Cita cita)
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            try
+            if (!optionsBuilder.IsConfigured)
             {
-                using (SqlConnection conn = new SqlConnection(ConnectionString))
-                {
-                    conn.Open();
-                    string query = "INSERT INTO Citas (NombreCompleto, Telefono, Servicios, FechaHora) VALUES (@nombre, @telefono, @servicios, @fechaHora)";
-                    using (SqlCommand cmd = new SqlCommand(query, conn))
-                    {
-                        cmd.Parameters.AddWithValue("@nombre", cita.NombreCompleto);
-                        cmd.Parameters.AddWithValue("@telefono", cita.Telefono);
-                        cmd.Parameters.AddWithValue("@servicios", cita.Servicios);
-                        cmd.Parameters.AddWithValue("@fechaHora", cita.FechaHora);
-                        return cmd.ExecuteNonQuery() > 0;
-                    }
-                }
-            }
-            catch
-            {
-                return false;
+                optionsBuilder.UseSqlServer(@"Server=localhost\SQLEXPRESS;Database=YeeffBarberDb;Integrated Security=True;TrustServerCertificate=True;");
             }
         }
 
-        public bool EliminarCita(int id)
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            try
+            modelBuilder.Entity<Cita>(entity =>
             {
-                using (SqlConnection conn = new SqlConnection(ConnectionString))
-                {
-                    conn.Open();
-                    string query = "DELETE FROM Citas WHERE Id = @id";
-                    using (SqlCommand cmd = new SqlCommand(query, conn))
-                    {
-                        cmd.Parameters.AddWithValue("@id", id);
-                        return cmd.ExecuteNonQuery() > 0;
-                    }
-                }
-            }
-            catch
-            {
-                return false;
-            }
-        }
+                entity.ToTable("Citas");
+                entity.Property(e => e.NombreCompleto)
+                    .HasMaxLength(100)
+                    .IsRequired();
+                entity.Property(e => e.Telefono)
+                    .HasMaxLength(20)
+                    .IsRequired();
+                entity.Property(e => e.FechaHora).IsRequired();
+                entity.Property(e => e.FechaRegistro)
+                    .HasDefaultValueSql("GETDATE()");
+                
+                entity.HasOne(d => d.Servicio)
+                    .WithMany()
+                    .HasForeignKey(d => d.ServicioId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
 
-        public Cita? ObtenerCitaPorId(int id)
-        {
-            try
+            modelBuilder.Entity<Servicio>(entity =>
             {
-                using (SqlConnection conn = new SqlConnection(ConnectionString))
-                {
-                    conn.Open();
-                    string query = "SELECT Id, NombreCompleto, Telefono, Servicios, FechaHora, FechaRegistro FROM Citas WHERE Id = @id";
-                    using (SqlCommand cmd = new SqlCommand(query, conn))
-                    {
-                        cmd.Parameters.AddWithValue("@id", id);
-                        using (SqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            if (reader.Read())
-                            {
-                                return new Cita
-                                {
-                                    Id = Convert.ToInt32(reader["Id"]),
-                                    NombreCompleto = reader["NombreCompleto"]?.ToString() ?? "",
-                                    Telefono = reader["Telefono"]?.ToString() ?? "",
-                                    Servicios = reader["Servicios"]?.ToString() ?? "",
-                                    FechaHora = Convert.ToDateTime(reader["FechaHora"]),
-                                    FechaRegistro = reader["FechaRegistro"] != DBNull.Value
-                                        ? Convert.ToDateTime(reader["FechaRegistro"])
-                                        : DateTime.Now
-                                };
-                            }
-                        }
-                    }
-                }
-            }
-            catch
-            {
-                // Retornar null si hay error
-            }
-            return null;
-        }
-
-        public int ContarCitas()
-        {
-            try
-            {
-                using (SqlConnection conn = new SqlConnection(ConnectionString))
-                {
-                    conn.Open();
-                    string query = "SELECT COUNT(*) FROM Citas";
-                    using (SqlCommand cmd = new SqlCommand(query, conn))
-                    {
-                        return (int)cmd.ExecuteScalar();
-                    }
-                }
-            }
-            catch
-            {
-                return 0;
-            }
+                entity.ToTable("Servicios");
+                entity.Property(e => e.Nombre)
+                    .HasMaxLength(100)
+                    .IsRequired();
+                entity.Property(e => e.Descripcion)
+                    .HasMaxLength(500);
+                entity.Property(e => e.Precio)
+                    .HasColumnType("decimal(18,2)");
+                entity.Property(e => e.Activo)
+                    .HasDefaultValue(true);
+                entity.Property(e => e.FechaRegistro)
+                    .HasDefaultValueSql("GETDATE()");
+            });
         }
     }
 }

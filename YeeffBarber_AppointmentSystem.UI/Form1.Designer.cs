@@ -244,6 +244,7 @@ namespace YeeffBarber_AppointmentSystem.UI
             cmbHora.Name = "cmbHora";
             cmbHora.Size = new Size(160, 28);
             cmbHora.TabIndex = 13;
+            cmbHora.SelectedIndex = 0;
             // 
             // lblTextoHora
             // 

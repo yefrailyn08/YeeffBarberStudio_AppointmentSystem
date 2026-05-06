@@ -1,106 +1,66 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.InMemory;
+using YeeffBarber_AppointmentSystem.Data.Context;
+using YeeffBarber_AppointmentSystem.Data.Modelos;
 using YeeffBarber_AppointmentSystem.UI.Servicios;
 
 namespace YeeffBarber_AppointmentSystem.Test.Servicios
 {
     public class ServicioServiceTests
     {
-        [Fact]
-        public void Constructor_InicializaSinServiciosSeleccionados()
+        private readonly AppDbContext _context;
+        private readonly ServicioService _service;
+
+        public ServicioServiceTests()
         {
-            var service = new ServicioService();
-            Assert.False(service.HayServiciosSeleccionados());
+            var options = new DbContextOptionsBuilder<AppDbContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+            _context = new AppDbContext(options);
+            
+            // Seed test data
+            _context.Servicios.Add(new Servicio { Id = 1, Nombre = "Corte de pelo", Precio = 500, DuracionMinutos = 30, Activo = true });
+            _context.Servicios.Add(new Servicio { Id = 2, Nombre = "Cerquillo y barba", Precio = 700, DuracionMinutos = 45, Activo = true });
+            _context.Servicios.Add(new Servicio { Id = 3, Nombre = "Corte de niños", Precio = 300, DuracionMinutos = 20, Activo = true });
+            _context.Servicios.Add(new Servicio { Id = 4, Nombre = "Servicio inactivo", Precio = 100, DuracionMinutos = 10, Activo = false });
+            _context.SaveChanges();
+            
+            _service = new ServicioService(_context);
         }
 
         [Fact]
-        public void SeleccionarServicio_MarcaServicioComoSeleccionado()
+        public async Task GetServiciosDisponibles_DevuelveSoloActivos()
         {
-            var service = new ServicioService();
-            service.SeleccionarServicio("Corte de pelo", true);
-            Assert.True(service.HayServiciosSeleccionados());
-        }
-
-        [Fact]
-        public void ObtenerServiciosSeleccionados_DevuelveSoloSeleccionados()
-        {
-            var service = new ServicioService();
-            service.SeleccionarServicio("Corte de pelo", true);
-            service.SeleccionarServicio("Corte de niños", true);
-
-            var resultado = service.ObtenerServiciosSeleccionados();
-
-            Assert.Contains("Corte de pelo", resultado);
-            Assert.Contains("Corte de niños", resultado);
-            Assert.DoesNotContain("Cerquillo y barba", resultado);
-        }
-
-        [Fact]
-        public void ObtenerServiciosSeleccionados_DevuelveStringVacioSiNoHaySeleccion()
-        {
-            var service = new ServicioService();
-            var resultado = service.ObtenerServiciosSeleccionados();
-            Assert.Equal(string.Empty, resultado);
-        }
-
-        [Fact]
-        public void HayServiciosSeleccionados_DevuelveFalseSiNingunoSeleccionado()
-        {
-            var service = new ServicioService();
-            Assert.False(service.HayServiciosSeleccionados());
-        }
-
-        [Fact]
-        public void HayServiciosSeleccionados_DevuelveTrueSiAlMenosUnoSeleccionado()
-        {
-            var service = new ServicioService();
-            service.SeleccionarServicio("Cerquillo y barba", true);
-            Assert.True(service.HayServiciosSeleccionados());
-        }
-
-        [Fact]
-        public void GetServiciosDisponibles_DevuelveLosTresServicios()
-        {
-            var service = new ServicioService();
-            var servicios = service.GetServiciosDisponibles();
-
+            var servicios = await _service.GetServiciosDisponibles();
+            
             Assert.Equal(3, servicios.Count);
-            Assert.Contains("Corte de pelo", servicios);
-            Assert.Contains("Cerquillo y barba", servicios);
-            Assert.Contains("Corte de niños", servicios);
+            Assert.DoesNotContain(servicios, s => s.Nombre == "Servicio inactivo");
         }
 
         [Fact]
-        public void LimpiarSeleccion_DeseleccionaTodosLosServicios()
+        public async Task GetServiciosDisponibles_DevuelveLosTresServicios()
         {
-            var service = new ServicioService();
-            service.SeleccionarServicio("Corte de pelo", true);
-            service.SeleccionarServicio("Cerquillo y barba", true);
-            service.SeleccionarServicio("Corte de niños", true);
-
-            service.LimpiarSeleccion();
-
-            Assert.False(service.HayServiciosSeleccionados());
-            Assert.Equal(string.Empty, service.ObtenerServiciosSeleccionados());
+            var servicios = await _service.GetServiciosDisponibles();
+            
+            Assert.Contains(servicios, s => s.Nombre == "Corte de pelo");
+            Assert.Contains(servicios, s => s.Nombre == "Cerquillo y barba");
+            Assert.Contains(servicios, s => s.Nombre == "Corte de niños");
         }
 
         [Fact]
-        public void SeleccionarServicio_NoAfectaServicioInexistente()
+        public async Task GuardarServicio_NuevoServicio_ReturnsTrue()
         {
-            var service = new ServicioService();
-            service.SeleccionarServicio("Servicio inexistente", true);
-            Assert.False(service.HayServiciosSeleccionados());
-        }
+            var servicio = new Servicio
+            {
+                Nombre = "Nuevo servicio",
+                Precio = 400,
+                DuracionMinutos = 25,
+                Activo = true
+            };
 
-        [Fact]
-        public void SeleccionarServicio_DeseleccionarNoAfectaOtros()
-        {
-            var service = new ServicioService();
-            service.SeleccionarServicio("Corte de pelo", true);
-            service.SeleccionarServicio("Corte de niños", true);
-            service.SeleccionarServicio("Corte de pelo", false);
-
-            var resultado = service.ObtenerServiciosSeleccionados();
-            Assert.Contains("Corte de niños", resultado);
-            Assert.DoesNotContain("Corte de pelo", resultado);
+            var resultado = await _service.Guardar(servicio);
+            
+            Assert.True(resultado);
         }
     }
 }
