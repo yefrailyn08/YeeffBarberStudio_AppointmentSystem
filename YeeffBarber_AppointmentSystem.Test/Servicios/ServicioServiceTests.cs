@@ -81,5 +81,22 @@ namespace YeeffBarber_AppointmentSystem.Test.Servicios
             Assert.Contains(servicios, s => s.Nombre == "Cerquillo y barba");
             Assert.Contains(servicios, s => s.Nombre == "Corte de niños");
         }
+
+        [Fact]
+        public async Task Get_ServicioExistente_DevuelveServicio()
+        {
+            var servicio = await _service.Get(1);
+            
+            Assert.NotNull(servicio);
+            Assert.Equal("Corte de pelo", servicio!.Nombre);
+        }
+
+        [Fact]
+        public async Task Get_ServicioInexistente_DevuelveNull()
+        {
+            var servicio = await _service.Get(999);
+            
+            Assert.Null(servicio);
+        }
     }
 }

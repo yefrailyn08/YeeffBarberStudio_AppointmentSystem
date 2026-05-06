@@ -37,6 +37,12 @@ namespace YeeffBarber_AppointmentSystem.UI.Servicios
             return await _context.SaveChangesAsync() > 0;
         }
 
+        public async Task<Servicio?> Get(int id)
+        {
+            return await _context.Servicios
+                .FirstOrDefaultAsync(s => s.Id == id);
+        }
+
         public async Task<List<Servicio>> GetAll()
         {
             return await _context.Servicios

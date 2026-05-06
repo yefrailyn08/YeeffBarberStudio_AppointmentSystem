@@ -34,6 +34,13 @@ namespace YeeffBarber_AppointmentSystem.UI.Servicios
             return await _context.SaveChangesAsync() > 0;
         }
 
+        public async Task<Cita?> Get(int id)
+        {
+            return await _context.Citas
+                .Include(c => c.Servicio)
+                .FirstOrDefaultAsync(c => c.Id == id);
+        }
+
         public async Task<List<Cita>> GetAll()
         {
             try
