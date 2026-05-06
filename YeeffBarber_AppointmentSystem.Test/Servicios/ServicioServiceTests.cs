@@ -62,5 +62,24 @@ namespace YeeffBarber_AppointmentSystem.Test.Servicios
             
             Assert.True(resultado);
         }
+
+        [Fact]
+        public async Task GetAll_DevuelveSoloActivos()
+        {
+            var servicios = await _service.GetAll();
+            
+            Assert.Equal(3, servicios.Count);
+            Assert.DoesNotContain(servicios, s => s.Nombre == "Servicio inactivo");
+        }
+
+        [Fact]
+        public async Task GetAll_DevuelveLosTresServicios()
+        {
+            var servicios = await _service.GetAll();
+            
+            Assert.Contains(servicios, s => s.Nombre == "Corte de pelo");
+            Assert.Contains(servicios, s => s.Nombre == "Cerquillo y barba");
+            Assert.Contains(servicios, s => s.Nombre == "Corte de niños");
+        }
     }
 }
