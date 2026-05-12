@@ -25,7 +25,8 @@ namespace YeeffBarber_AppointmentSystem.UI
             chkNinos.CheckedChanged += Service_CheckedChanged;
             btnConfirmar.Click += BtnConfirmar_Click;
             btnVerCitas.Click += (s, e) => new CitasForm().Show();
-
+            dtpFecha.ValueChanged += async (s, e) => await ActualizarHorasDisponibles();
+            
             _servicioSeleccionado = _serviciosDisponibles.FirstOrDefault();
             if (_serviciosDisponibles.Any(s => s.Nombre.Contains("Corte de pelo")))
                 chkCorte.Checked = true;
@@ -82,6 +83,37 @@ namespace YeeffBarber_AppointmentSystem.UI
             {
                 MessageBox.Show($"Error al cargar servicios: {ex.Message}\n\nDetalles: {ex.InnerException?.Message}", 
                     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private async Task ActualizarHorasDisponibles()
+        {
+            if (_citaService == null || cmbHora == null)
+                return;
+
+            try
+            {
+                var horasOcupadas = await _citaService.ObtenerHorasOcupadas(dtpFecha.Value.Date);
+                
+                var todasLasHoras = new List<string> { "9:00 AM", "10:00 AM", "11:00 AM", "2:00 PM", "3:00 PM", "4:00 PM", "5:00 PM", "6:00 PM", "7:00 PM", "8:00 PM" };
+                var horasDisponibles = todasLasHoras.Where(h => !horasOcupadas.Contains(h)).ToList();
+                
+                var horaSeleccionada = cmbHora.SelectedItem?.ToString();
+                
+                cmbHora.Items.Clear();
+                cmbHora.Items.AddRange(horasDisponibles.ToArray());
+                
+                if (horasDisponibles.Any())
+                {
+                    if (!string.IsNullOrEmpty(horaSeleccionada) && horasDisponibles.Contains(horaSeleccionada))
+                        cmbHora.SelectedItem = horaSeleccionada;
+                    else
+                        cmbHora.SelectedIndex = 0;
+                }
+            }
+            catch
+            {
+                // Si hay error, mantener todas las horas disponibles
             }
         }
 
@@ -212,14 +244,24 @@ namespace YeeffBarber_AppointmentSystem.UI
             try
             {
                 var horaStr = cmbHora.SelectedItem?.ToString() ?? "09:00 AM";
-                var hora = DateTime.ParseExact(horaStr, "hh:mm tt", CultureInfo.InvariantCulture);
+                var hora = DateTime.ParseExact(horaStr, "h:mm tt", CultureInfo.InvariantCulture);
+                var fechaHora = dtpFecha.Value.Date.Add(hora.TimeOfDay);
+
+                // Validar que la hora no esté ocupada
+                var horaOcupada = await _citaService.ExisteCitaEnFechaYHora(fechaHora);
+                if (horaOcupada)
+                {
+                    MessageBox.Show("Esta hora ya está ocupada. Por favor selecciona otra hora.", 
+                        "Yeeff Barber Studio", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
                 
                 var cita = new YeeffBarber_AppointmentSystem.Data.Modelos.Cita
                 {
                     NombreCompleto = nombre,
                     Telefono = telefono,
                     ServicioId = _servicioSeleccionado.Id,
-                    FechaHora = dtpFecha.Value.Date.Add(hora.TimeOfDay)
+                    FechaHora = fechaHora
                 };
                 
                 bool guardado = await _citaService.Guardar(cita);

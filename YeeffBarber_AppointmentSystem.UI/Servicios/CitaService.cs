@@ -41,6 +41,21 @@ namespace YeeffBarber_AppointmentSystem.UI.Servicios
                 .FirstOrDefaultAsync(c => c.Id == id);
         }
 
+        public async Task<bool> ExisteCitaEnFechaYHora(DateTime fechaHora)
+        {
+            return await _context.Citas
+                .AnyAsync(c => c.FechaHora == fechaHora);
+        }
+
+        public async Task<List<string>> ObtenerHorasOcupadas(DateTime fecha)
+        {
+            var citasDelDia = await _context.Citas
+                .Where(c => c.FechaHora.Date == fecha.Date)
+                .Select(c => c.FechaHora.ToString("h:mm tt"))
+                .ToListAsync();
+            return citasDelDia;
+        }
+
         public async Task<List<Cita>> GetAll()
         {
             try

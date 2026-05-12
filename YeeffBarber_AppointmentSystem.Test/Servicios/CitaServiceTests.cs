@@ -135,12 +135,67 @@ namespace YeeffBarber_AppointmentSystem.Test.Servicios
             Assert.Equal("Juan Pérez", citaEncontrada!.NombreCompleto);
         }
 
-        [Fact]
-        public async Task Get_CitaInexistente_DevuelveNull()
+[Fact]
+        public async Task Get_ServicioInexistente_DevuelveNull()
         {
-            var citaEncontrada = await _service.Get(999);
+            var servicio = await _service.Get(999);
             
-            Assert.Null(citaEncontrada);
+            Assert.Null(servicio);
+        }
+
+        [Fact]
+        public async Task ExisteCitaEnFechaYHora_HoraOcupada_DevuelveTrue()
+        {
+            var fechaHora = new DateTime(2026, 5, 15, 9, 0, 0);
+            var cita = new Cita
+            {
+                NombreCompleto = "Juan Pérez",
+                Telefono = "8091234567",
+                ServicioId = 1,
+                FechaHora = fechaHora
+            };
+            await _service.Guardar(cita);
+
+            var existe = await _service.ExisteCitaEnFechaYHora(fechaHora);
+            
+            Assert.True(existe);
+        }
+
+        [Fact]
+        public async Task ExisteCitaEnFechaYHora_HoraLibre_DevuelveFalse()
+        {
+            var fechaHora = new DateTime(2026, 5, 15, 10, 0, 0);
+
+            var existe = await _service.ExisteCitaEnFechaYHora(fechaHora);
+            
+            Assert.False(existe);
+        }
+
+        [Fact]
+        public async Task ObtenerHorasOcupadas_DevuelveHorasDelDia()
+        {
+            var cita1 = new Cita
+            {
+                NombreCompleto = "Juan Pérez",
+                Telefono = "8091234567",
+                ServicioId = 1,
+                FechaHora = new DateTime(2026, 5, 15, 9, 0, 0)
+            };
+            var cita2 = new Cita
+            {
+                NombreCompleto = "María García",
+                Telefono = "8099876543",
+                ServicioId = 2,
+                FechaHora = new DateTime(2026, 5, 15, 14, 0, 0)
+            };
+            await _service.Guardar(cita1);
+            await _service.Guardar(cita2);
+
+            var horasOcupadas = await _service.ObtenerHorasOcupadas(new DateTime(2026, 5, 15));
+            
+            Assert.Equal(2, horasOcupadas.Count);
+            Assert.Contains(horasOcupadas, h => h.Contains("9:00"));
+            Assert.Contains(horasOcupadas, h => h.Contains("2:00"));
         }
 
         [Fact]
