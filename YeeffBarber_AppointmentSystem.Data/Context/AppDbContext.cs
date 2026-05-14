@@ -12,6 +12,7 @@ namespace YeeffBarber_AppointmentSystem.Data.Context
 
         public virtual DbSet<Cita> Citas { get; set; } = null!;
         public virtual DbSet<Servicio> Servicios { get; set; } = null!;
+        public virtual DbSet<Usuario> Usuarios { get; set; } = null!;
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -56,6 +57,24 @@ namespace YeeffBarber_AppointmentSystem.Data.Context
                     .HasDefaultValue(true);
                 entity.Property(e => e.FechaRegistro)
                     .HasDefaultValueSql("GETDATE()");
+            });
+
+            modelBuilder.Entity<Usuario>(entity =>
+            {
+                entity.ToTable("Usuarios");
+                entity.Property(e => e.Nombre)
+                    .HasMaxLength(100)
+                    .IsRequired();
+                entity.Property(e => e.Email)
+                    .HasMaxLength(100)
+                    .IsRequired();
+                entity.Property(e => e.Contrasena)
+                    .HasMaxLength(255)
+                    .IsRequired();
+                entity.Property(e => e.FechaRegistro)
+                    .HasDefaultValueSql("GETDATE()");
+                entity.Property(e => e.Activo)
+                    .HasDefaultValue(true);
             });
         }
     }

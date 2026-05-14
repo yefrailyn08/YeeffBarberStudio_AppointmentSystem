@@ -13,6 +13,7 @@ namespace YeeffBarber_AppointmentSystem.UI
         private ServicioService? _servicioService;
         private List<Servicio> _serviciosDisponibles = new();
         private Servicio? _servicioSeleccionado;
+        private Usuario? _usuarioLogueado;
 
         public Form1()
         {
@@ -27,13 +28,42 @@ namespace YeeffBarber_AppointmentSystem.UI
             btnVerCitas.Click += (s, e) => new CitasForm().Show();
             dtpFecha.ValueChanged += async (s, e) => await ActualizarHorasDisponibles();
             
-            // Validar que no sea martes al cargar
             if (dtpFecha.Value.DayOfWeek == DayOfWeek.Tuesday)
             {
                 MessageBox.Show("Los martes son día libre. Por favor selecciona otro día.", 
                     "Yeeff Barber Studio", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             
+            ActualizarBienvenida();
+            ConfigurarCamposTexto();
+        }
+
+        public Form1(Usuario usuario)
+        {
+            InitializeComponent();
+            InitializeServices();
+            LoadServicios();
+            _usuarioLogueado = usuario;
+            
+            chkCorte.CheckedChanged += Service_CheckedChanged;
+            chkBarba.CheckedChanged += Service_CheckedChanged;
+            chkNinos.CheckedChanged += Service_CheckedChanged;
+            btnConfirmar.Click += BtnConfirmar_Click;
+            btnVerCitas.Click += (s, e) => new CitasForm().Show();
+            dtpFecha.ValueChanged += async (s, e) => await ActualizarHorasDisponibles();
+            
+            if (dtpFecha.Value.DayOfWeek == DayOfWeek.Tuesday)
+            {
+                MessageBox.Show("Los martes son día libre. Por favor selecciona otro día.", 
+                    "Yeeff Barber Studio", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            
+            ActualizarBienvenida();
+            ConfigurarCamposTexto();
+        }
+
+        private void ConfigurarCamposTexto()
+        {
             _servicioSeleccionado = _serviciosDisponibles.FirstOrDefault();
             if (_serviciosDisponibles.Any(s => s.Nombre.Contains("Corte de pelo")))
                 chkCorte.Checked = true;
@@ -43,10 +73,18 @@ namespace YeeffBarber_AppointmentSystem.UI
             txtNombre.Enter += txtNombre_Enter;
             txtNombre.Leave += txtNombre_Leave;
 
-            txtTelefono.Text = "TelÃ©fono";
+            txtTelefono.Text = "Teléfono";
             txtTelefono.ForeColor = Color.Gray;
             txtTelefono.Enter += txtTelefono_Enter;
             txtTelefono.Leave += txtTelefono_Leave;
+        }
+
+        private void ActualizarBienvenida()
+        {
+            if (_usuarioLogueado != null)
+            {
+                lblTitulo.Text = $"BIENVENIDO, {_usuarioLogueado.Nombre.ToUpper()}";
+            }
         }
 
         private void InitializeServices()
