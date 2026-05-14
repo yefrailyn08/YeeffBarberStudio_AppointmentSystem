@@ -50,6 +50,16 @@ namespace YeeffBarber_AppointmentSystem.UI.Servicios
                 .ToListAsync();
         }
 
+        public async Task<bool> Eliminar(int id)
+        {
+            var servicio = await _context.Servicios.FindAsync(id);
+            if (servicio == null)
+                return false;
+
+            _context.Servicios.Remove(servicio);
+            return await _context.SaveChangesAsync() > 0;
+        }
+
         public async Task<List<Servicio>> GetServiciosDisponibles()
         {
             try

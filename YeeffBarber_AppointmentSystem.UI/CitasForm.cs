@@ -11,9 +11,11 @@ namespace YeeffBarber_AppointmentSystem.UI
     {
         private DataGridView? dgvCitas;
         private Button? btnActualizar;
+        private Button? btnEliminar;
         private Label? lblTitulo;
         private Button? btnVolver;
         private CitaService? _citaService;
+        private List<int> _citaIds = new List<int>();
 
         public CitasForm()
         {
@@ -86,10 +88,22 @@ namespace YeeffBarber_AppointmentSystem.UI
             btnActualizar.ForeColor = Color.Black;
             btnActualizar.FlatStyle = FlatStyle.Flat;
             btnActualizar.Location = new Point(20, 750);
-            btnActualizar.Size = new Size(170, 45);
+            btnActualizar.Size = new Size(110, 45);
             btnActualizar.Cursor = Cursors.Hand;
             btnActualizar.FlatAppearance.BorderSize = 0;
             btnActualizar.Click += (s, e) => CargarCitas();
+
+            btnEliminar = new Button();
+            btnEliminar.Text = "ELIMINAR";
+            btnEliminar.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
+            btnEliminar.BackColor = Color.FromArgb(180, 50, 50);
+            btnEliminar.ForeColor = Color.White;
+            btnEliminar.FlatStyle = FlatStyle.Flat;
+            btnEliminar.Location = new Point(140, 750);
+            btnEliminar.Size = new Size(110, 45);
+            btnEliminar.Cursor = Cursors.Hand;
+            btnEliminar.FlatAppearance.BorderSize = 0;
+            btnEliminar.Click += btnEliminar_Click;
 
             btnVolver = new Button();
             btnVolver.Text = "VOLVER";
@@ -97,8 +111,8 @@ namespace YeeffBarber_AppointmentSystem.UI
             btnVolver.BackColor = Color.FromArgb(60, 60, 60);
             btnVolver.ForeColor = Color.White;
             btnVolver.FlatStyle = FlatStyle.Flat;
-            btnVolver.Location = new Point(203, 750);
-            btnVolver.Size = new Size(170, 45);
+            btnVolver.Location = new Point(260, 750);
+            btnVolver.Size = new Size(113, 45);
             btnVolver.Cursor = Cursors.Hand;
             btnVolver.FlatAppearance.BorderSize = 0;
             btnVolver.Click += btnVolver_Click;
@@ -106,6 +120,7 @@ namespace YeeffBarber_AppointmentSystem.UI
             this.Controls.Add(lblTitulo);
             this.Controls.Add(dgvCitas);
             this.Controls.Add(btnActualizar);
+            this.Controls.Add(btnEliminar);
             this.Controls.Add(btnVolver);
         }
 
@@ -125,6 +140,7 @@ namespace YeeffBarber_AppointmentSystem.UI
                 dt.Columns.Add("Fecha", typeof(string));
                 dt.Columns.Add("Hora", typeof(string));
 
+                _citaIds.Clear();
                 foreach (var cita in citas)
                 {
                     try
@@ -136,6 +152,7 @@ namespace YeeffBarber_AppointmentSystem.UI
                         row["Fecha"] = cita.FechaHora.ToString("dd/MM/yyyy");
                         row["Hora"] = cita.FechaHora.ToString("HH:mm");
                         dt.Rows.Add(row);
+                        _citaIds.Add(cita.Id);
                     }
                     catch
                     {
@@ -154,6 +171,46 @@ namespace YeeffBarber_AppointmentSystem.UI
             catch (Exception ex)
             {
                 MessageBox.Show("Error al cargar citas: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private async void btnEliminar_Click(object? sender, EventArgs e)
+        {
+            if (dgvCitas == null || dgvCitas.SelectedRows.Count == 0)
+            {
+                MessageBox.Show("Por favor selecciona una cita para eliminar.", "Yeeff Barber Studio", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            var confirmResult = MessageBox.Show(
+                "¿Estás seguro de que deseas eliminar esta cita?",
+                "Confirmar eliminación",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question);
+
+            if (confirmResult == DialogResult.Yes)
+            {
+                try
+                {
+                    int selectedIndex = dgvCitas.SelectedRows[0].Index;
+                    int citaId = _citaIds[selectedIndex];
+
+                    var eliminado = await _citaService!.Eliminar(citaId);
+                    
+                    if (eliminado)
+                    {
+                        MessageBox.Show("Cita eliminada exitosamente.", "Yeeff Barber Studio", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        CargarCitas();
+                    }
+                    else
+                    {
+                        MessageBox.Show("No se pudo eliminar la cita.", "Yeeff Barber Studio", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error al eliminar la cita: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
         }
 

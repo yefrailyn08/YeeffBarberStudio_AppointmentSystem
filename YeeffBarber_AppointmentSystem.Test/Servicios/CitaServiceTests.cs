@@ -199,6 +199,31 @@ namespace YeeffBarber_AppointmentSystem.Test.Servicios
         }
 
         [Fact]
+        public async Task Eliminar_CitaExistente_DevuelveTrue()
+        {
+            var cita = new Cita
+            {
+                NombreCompleto = "Juan Pérez",
+                Telefono = "8091234567",
+                ServicioId = 1,
+                FechaHora = DateTime.Today.AddDays(1)
+            };
+            await _service.Guardar(cita);
+
+            var resultado = await _service.Eliminar(cita.Id);
+            
+            Assert.True(resultado);
+        }
+
+        [Fact]
+        public async Task Eliminar_CitaInexistente_DevuelveFalse()
+        {
+            var resultado = await _service.Eliminar(999);
+            
+            Assert.False(resultado);
+        }
+
+        [Fact]
         public void FormatearConfirmacion_DevuelveMensajeConDatos()
         {
             var fecha = new DateTime(2026, 5, 10, 10, 0, 0);

@@ -70,7 +70,16 @@ namespace YeeffBarber_AppointmentSystem.UI.Servicios
             }
         }
 
-        // Validation methods used in UI
+        public async Task<bool> Eliminar(int id)
+        {
+            var cita = await _context.Citas.FindAsync(id);
+            if (cita == null)
+                return false;
+
+            _context.Citas.Remove(cita);
+            return await _context.SaveChangesAsync() > 0;
+        }
+
         public bool ValidarNombre(string nombre)
         {
             return !string.IsNullOrWhiteSpace(nombre) && nombre.Length >= 3;
