@@ -111,13 +111,23 @@ namespace YeeffBarber_AppointmentSystem.UI
             {
                 var horasOcupadas = await _citaService.ObtenerHorasOcupadas(dtpFecha.Value.Date);
                 
-                // Horario especial para fines de semana (sábado y domingo): 7AM-12PM
-                bool esFinDeSemana = dtpFecha.Value.DayOfWeek == DayOfWeek.Saturday || 
-                                     dtpFecha.Value.DayOfWeek == DayOfWeek.Sunday;
+                List<string> todasLasHoras;
                 
-                var todasLasHoras = esFinDeSemana
-                    ? new List<string> { "7:00 AM", "8:00 AM", "9:00 AM", "10:00 AM", "11:00 AM" }
-                    : new List<string> { "9:00 AM", "10:00 AM", "11:00 AM", "2:00 PM", "3:00 PM", "4:00 PM", "5:00 PM", "6:00 PM", "7:00 PM", "8:00 PM" };
+                if (dtpFecha.Value.DayOfWeek == DayOfWeek.Saturday)
+                {
+                    // Sábado: 7AM-8PM sin cierre al mediodía
+                    todasLasHoras = new List<string> { "7:00 AM", "8:00 AM", "9:00 AM", "10:00 AM", "11:00 AM", "12:00 PM", "2:00 PM", "3:00 PM", "4:00 PM", "5:00 PM", "6:00 PM", "7:00 PM", "8:00 PM" };
+                }
+                else if (dtpFecha.Value.DayOfWeek == DayOfWeek.Sunday)
+                {
+                    // Domingo: solo mañana 7AM-12PM
+                    todasLasHoras = new List<string> { "7:00 AM", "8:00 AM", "9:00 AM", "10:00 AM", "11:00 AM" };
+                }
+                else
+                {
+                    // Lunes-Viernes: 9AM-12PM y 2PM-8PM
+                    todasLasHoras = new List<string> { "9:00 AM", "10:00 AM", "11:00 AM", "2:00 PM", "3:00 PM", "4:00 PM", "5:00 PM", "6:00 PM", "7:00 PM", "8:00 PM" };
+                }
                 
                 var horasDisponibles = todasLasHoras.Where(h => !horasOcupadas.Contains(h)).ToList();
                 
