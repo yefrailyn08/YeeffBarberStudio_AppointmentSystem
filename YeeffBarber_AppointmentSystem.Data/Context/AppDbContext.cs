@@ -65,9 +65,11 @@ namespace YeeffBarber_AppointmentSystem.Data.Context
                 entity.Property(e => e.Nombre)
                     .HasMaxLength(100)
                     .IsRequired();
-                entity.Property(e => e.Email)
+                entity.Property(e => e.NombreUsuario)
                     .HasMaxLength(100)
                     .IsRequired();
+                entity.Property(e => e.Email)
+                    .HasMaxLength(100);
                 entity.Property(e => e.Contrasena)
                     .HasMaxLength(255)
                     .IsRequired();

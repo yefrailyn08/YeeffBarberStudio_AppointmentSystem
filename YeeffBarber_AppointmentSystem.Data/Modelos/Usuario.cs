@@ -11,9 +11,11 @@ namespace YeeffBarber_AppointmentSystem.Data.Modelos
         public string Nombre { get; set; } = string.Empty;
 
         [Required]
-        [EmailAddress]
         [StringLength(100)]
-        public string Email { get; set; } = string.Empty;
+        public string NombreUsuario { get; set; } = string.Empty;
+
+        [StringLength(100)]
+        public string? Email { get; set; }
 
         [Required]
         [StringLength(255)]

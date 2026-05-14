@@ -15,19 +15,19 @@ namespace YeeffBarber_AppointmentSystem.UI.Servicios
             _context = context;
         }
 
-        public async Task<Usuario?> IniciarSesion(string email, string contrasena)
+        public async Task<Usuario?> IniciarSesion(string nombreUsuario, string contrasena)
         {
             var hashedPassword = HashPassword(contrasena);
             
             return await _context.Usuarios
-                .FirstOrDefaultAsync(u => u.Email == email && u.Contrasena == hashedPassword && u.Activo);
+                .FirstOrDefaultAsync(u => u.NombreUsuario == nombreUsuario && u.Contrasena == hashedPassword && u.Activo);
         }
 
-        public async Task<bool> Registrarse(string nombre, string email, string contrasena)
+        public async Task<bool> Registrarse(string nombre, string nombreUsuario, string? email, string contrasena)
         {
-            var existeEmail = await _context.Usuarios.AnyAsync(u => u.Email == email);
+            var existeUsuario = await _context.Usuarios.AnyAsync(u => u.NombreUsuario == nombreUsuario);
             
-            if (existeEmail)
+            if (existeUsuario)
             {
                 return false;
             }
@@ -37,6 +37,7 @@ namespace YeeffBarber_AppointmentSystem.UI.Servicios
             var usuario = new Usuario
             {
                 Nombre = nombre,
+                NombreUsuario = nombreUsuario,
                 Email = email,
                 Contrasena = hashedPassword,
                 FechaRegistro = DateTime.UtcNow,
@@ -47,14 +48,14 @@ namespace YeeffBarber_AppointmentSystem.UI.Servicios
             return await _context.SaveChangesAsync() > 0;
         }
 
-        public async Task<Usuario?> GetByEmail(string email)
+        public async Task<Usuario?> GetByNombreUsuario(string nombreUsuario)
         {
-            return await _context.Usuarios.FirstOrDefaultAsync(u => u.Email == email);
+            return await _context.Usuarios.FirstOrDefaultAsync(u => u.NombreUsuario == nombreUsuario);
         }
 
-        public async Task<bool> ExisteEmail(string email)
+        public async Task<bool> ExisteNombreUsuario(string nombreUsuario)
         {
-            return await _context.Usuarios.AnyAsync(u => u.Email == email);
+            return await _context.Usuarios.AnyAsync(u => u.NombreUsuario == nombreUsuario);
         }
 
         private string HashPassword(string password)

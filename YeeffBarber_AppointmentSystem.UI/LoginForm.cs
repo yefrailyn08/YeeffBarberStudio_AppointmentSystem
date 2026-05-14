@@ -135,9 +135,9 @@ namespace YeeffBarber_AppointmentSystem.UI
                 panelFormulario.Controls.Add(txtNombre);
             }
 
-            var lblEmail = CrearLabel("Correo electrónico:", new Point(0, esModoRegistro ? 85 : 20));
-            txtEmail = CrearTextBox(new Point(0, esModoRegistro ? 110 : 45), "ejemplo@correo.com");
-            panelFormulario.Controls.Add(lblEmail);
+            var lblUsuario = CrearLabel(esModoRegistro ? "Nombre de usuario:" : "Nombre de usuario:", new Point(0, esModoRegistro ? 85 : 20));
+            txtEmail = CrearTextBox(new Point(0, esModoRegistro ? 110 : 45), "Ingresa tu nombre de usuario");
+            panelFormulario.Controls.Add(lblUsuario);
             panelFormulario.Controls.Add(txtEmail);
 
             var lblContrasena = CrearLabel("Contraseña:", new Point(0, esModoRegistro ? 150 : 85));
@@ -244,22 +244,22 @@ namespace YeeffBarber_AppointmentSystem.UI
         {
             try
             {
-                var email = txtEmail!.Text.Trim();
+                var nombreUsuario = txtEmail!.Text.Trim();
                 var contrasena = txtContrasena!.Text;
 
-                if (string.IsNullOrEmpty(email) || email == "ejemplo@correo.com")
+                if (string.IsNullOrEmpty(nombreUsuario) || nombreUsuario == "Ingresa tu nombre de usuario")
                 {
-                    MessageBox.Show("Por favor ingresa tu correo electrónico", "Yeeff Barber Studio", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("Por favor ingresa tu nombre de usuario", "Yeeff Barber Studio", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
-                if (string.IsNullOrEmpty(contrasena) || contrasena == "Contraseña")
+                if (string.IsNullOrEmpty(contrasena))
                 {
                     MessageBox.Show("Por favor ingresa tu contraseña", "Yeeff Barber Studio", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
-                var usuario = await _usuarioService!.IniciarSesion(email, contrasena);
+                var usuario = await _usuarioService!.IniciarSesion(nombreUsuario, contrasena);
                 
                 if (usuario != null)
                 {
@@ -271,7 +271,7 @@ namespace YeeffBarber_AppointmentSystem.UI
                 }
                 else
                 {
-                    MessageBox.Show("Correo o contraseña incorrectos", "Yeeff Barber Studio", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("Nombre de usuario o contraseña incorrectos", "Yeeff Barber Studio", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
             catch (Exception ex)
@@ -285,7 +285,7 @@ namespace YeeffBarber_AppointmentSystem.UI
             try
             {
                 var nombre = txtNombre!.Text.Trim();
-                var email = txtEmail!.Text.Trim();
+                var nombreUsuario = txtEmail!.Text.Trim();
                 var contrasena = txtContrasena!.Text;
                 var confirmarContrasena = txtConfirmarContrasena!.Text;
 
@@ -295,9 +295,9 @@ namespace YeeffBarber_AppointmentSystem.UI
                     return;
                 }
 
-                if (string.IsNullOrEmpty(email) || email == "ejemplo@correo.com")
+                if (string.IsNullOrEmpty(nombreUsuario) || nombreUsuario == "Ingresa tu nombre de usuario")
                 {
-                    MessageBox.Show("Por favor ingresa tu correo electrónico", "Yeeff Barber Studio", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("Por favor ingresa un nombre de usuario", "Yeeff Barber Studio", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
@@ -319,7 +319,7 @@ namespace YeeffBarber_AppointmentSystem.UI
                     return;
                 }
 
-                var registroExitoso = await _usuarioService!.Registrarse(nombre, email, contrasena);
+                var registroExitoso = await _usuarioService!.Registrarse(nombre, nombreUsuario, null, contrasena);
                 
                 if (registroExitoso)
                 {
@@ -328,7 +328,7 @@ namespace YeeffBarber_AppointmentSystem.UI
                 }
                 else
                 {
-                    MessageBox.Show("El correo ya está registrado", "Yeeff Barber Studio", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("El nombre de usuario ya está registrado", "Yeeff Barber Studio", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
             catch (Exception ex)
