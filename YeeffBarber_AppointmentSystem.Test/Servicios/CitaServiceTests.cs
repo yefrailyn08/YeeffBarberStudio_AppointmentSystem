@@ -241,6 +241,20 @@ namespace YeeffBarber_AppointmentSystem.Test.Servicios
         }
 
         [Fact]
+        public void EsDomingo_Domingo_DevuelveTrue()
+        {
+            var domingo = new DateTime(2026, 5, 17); // Un domingo
+            Assert.True(domingo.DayOfWeek == DayOfWeek.Sunday);
+        }
+
+        [Fact]
+        public void EsDomingo_OtroDia_DevuelveFalse()
+        {
+            var lunes = new DateTime(2026, 5, 11);
+            Assert.False(lunes.DayOfWeek == DayOfWeek.Sunday);
+        }
+
+        [Fact]
         public void FormatearConfirmacion_DevuelveMensajeConDatos()
         {
             var fecha = new DateTime(2026, 5, 10, 10, 0, 0);

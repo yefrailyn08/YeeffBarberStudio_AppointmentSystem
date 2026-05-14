@@ -111,7 +111,11 @@ namespace YeeffBarber_AppointmentSystem.UI
             {
                 var horasOcupadas = await _citaService.ObtenerHorasOcupadas(dtpFecha.Value.Date);
                 
-                var todasLasHoras = new List<string> { "9:00 AM", "10:00 AM", "11:00 AM", "2:00 PM", "3:00 PM", "4:00 PM", "5:00 PM", "6:00 PM", "7:00 PM", "8:00 PM" };
+                // Horario especial para domingos: solo mañana
+                var todasLasHoras = dtpFecha.Value.DayOfWeek == DayOfWeek.Sunday
+                    ? new List<string> { "8:00 AM", "9:00 AM", "10:00 AM", "11:00 AM" }
+                    : new List<string> { "9:00 AM", "10:00 AM", "11:00 AM", "2:00 PM", "3:00 PM", "4:00 PM", "5:00 PM", "6:00 PM", "7:00 PM", "8:00 PM" };
+                
                 var horasDisponibles = todasLasHoras.Where(h => !horasOcupadas.Contains(h)).ToList();
                 
                 var horaSeleccionada = cmbHora.SelectedItem?.ToString();
