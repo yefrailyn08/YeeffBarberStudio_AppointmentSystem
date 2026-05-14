@@ -224,6 +224,23 @@ namespace YeeffBarber_AppointmentSystem.Test.Servicios
         }
 
         [Fact]
+        public void EsDiaLibre_Martes_DevuelveTrue()
+        {
+            var martes = new DateTime(2026, 5, 12); // Un martes
+            Assert.True(_service.EsDiaLibre(martes));
+        }
+
+        [Fact]
+        public void EsDiaLibre_OtroDia_DevuelveFalse()
+        {
+            var lunes = new DateTime(2026, 5, 11);
+            var miercoles = new DateTime(2026, 5, 13);
+            
+            Assert.False(_service.EsDiaLibre(lunes));
+            Assert.False(_service.EsDiaLibre(miercoles));
+        }
+
+        [Fact]
         public void FormatearConfirmacion_DevuelveMensajeConDatos()
         {
             var fecha = new DateTime(2026, 5, 10, 10, 0, 0);

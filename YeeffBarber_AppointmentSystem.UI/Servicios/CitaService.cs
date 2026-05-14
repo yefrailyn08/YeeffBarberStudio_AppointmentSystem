@@ -80,6 +80,11 @@ namespace YeeffBarber_AppointmentSystem.UI.Servicios
             return await _context.SaveChangesAsync() > 0;
         }
 
+        public bool EsDiaLibre(DateTime fecha)
+        {
+            return fecha.DayOfWeek == DayOfWeek.Tuesday;
+        }
+
         public bool ValidarNombre(string nombre)
         {
             return !string.IsNullOrWhiteSpace(nombre) && nombre.Length >= 3;

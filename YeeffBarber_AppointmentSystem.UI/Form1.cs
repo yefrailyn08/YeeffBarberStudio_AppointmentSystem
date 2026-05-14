@@ -27,6 +27,13 @@ namespace YeeffBarber_AppointmentSystem.UI
             btnVerCitas.Click += (s, e) => new CitasForm().Show();
             dtpFecha.ValueChanged += async (s, e) => await ActualizarHorasDisponibles();
             
+            // Validar que no sea martes al cargar
+            if (dtpFecha.Value.DayOfWeek == DayOfWeek.Tuesday)
+            {
+                MessageBox.Show("Los martes son día libre. Por favor selecciona otro día.", 
+                    "Yeeff Barber Studio", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            
             _servicioSeleccionado = _serviciosDisponibles.FirstOrDefault();
             if (_serviciosDisponibles.Any(s => s.Nombre.Contains("Corte de pelo")))
                 chkCorte.Checked = true;
@@ -90,6 +97,15 @@ namespace YeeffBarber_AppointmentSystem.UI
         {
             if (_citaService == null || cmbHora == null)
                 return;
+
+            // Si es martes, no mostrar horas disponibles
+            if (dtpFecha.Value.DayOfWeek == DayOfWeek.Tuesday)
+            {
+                cmbHora.Items.Clear();
+                cmbHora.Items.Add("Día libre");
+                cmbHora.SelectedIndex = 0;
+                return;
+            }
 
             try
             {
@@ -243,6 +259,14 @@ namespace YeeffBarber_AppointmentSystem.UI
 
             try
             {
+                // Validar que no sea martes
+                if (dtpFecha.Value.DayOfWeek == DayOfWeek.Tuesday)
+                {
+                    MessageBox.Show("Lo sentimos, los martes son día libre. Por favor selecciona otro día.", 
+                        "Yeeff Barber Studio", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
+                }
+
                 var horaStr = cmbHora.SelectedItem?.ToString() ?? "09:00 AM";
                 var hora = DateTime.ParseExact(horaStr, "h:mm tt", CultureInfo.InvariantCulture);
                 var fechaHora = dtpFecha.Value.Date.Add(hora.TimeOfDay);
