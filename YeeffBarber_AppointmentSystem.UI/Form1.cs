@@ -125,8 +125,8 @@ namespace YeeffBarber_AppointmentSystem.UI
                 }
                 else
                 {
-                    // Lunes-Viernes: 9AM-12PM y 2PM-8PM
-                    todasLasHoras = new List<string> { "9:00 AM", "10:00 AM", "11:00 AM", "2:00 PM", "3:00 PM", "4:00 PM", "5:00 PM", "6:00 PM", "7:00 PM", "8:00 PM" };
+                    // Lunes, Miércoles, Jueves, Viernes: 9AM-12PM y 2PM-8PM
+                    todasLasHoras = new List<string> { "9:00 AM", "10:00 AM", "11:00 AM", "12:00 PM", "2:00 PM", "3:00 PM", "4:00 PM", "5:00 PM", "6:00 PM", "7:00 PM", "8:00 PM" };
                 }
                 
                 var horasDisponibles = todasLasHoras.Where(h => !horasOcupadas.Contains(h)).ToList();
